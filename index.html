@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>한국 로또 6/45 번호 발생기</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+      background: linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px;
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 28px;
+      padding: 28px 20px 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.55rem;
+      margin-bottom: 4px;
+      background: linear-gradient(90deg, #ffd700, #ff8a65);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+    .mode-box {
+      background: rgba(0,0,0,0.28);
+      border-radius: 16px;
+      padding: 12px 10px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .mode-box label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 8px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .mode-box label:hover { background: rgba(255,255,255,0.07); }
+    .mode-box input {
+      accent-color: #ff6b6b;
+      width: 17px; height: 17px;
+      flex-shrink: 0;
+    }
+    .mode-desc {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.42);
+      margin: -2px 0 2px 27px;
+    }
+    .count-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .count-row label { font-size: 0.9rem; color: rgba(255,255,255,0.75); }
+    select {
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+    }
+    select option { background: #1a1a2e; color: #fff; }
+    .balls-area {
+      background: rgba(0,0,0,0.22);
+      border-radius: 20px;
+      padding: 22px 12px;
+      margin-bottom: 18px;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .balls-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .ball {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      animation: popIn 0.35s ease backwards;
+      flex-shrink: 0;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .ball.yellow { background: linear-gradient(145deg, #ffd54f, #f9a825); color: #333; }
+    .ball.blue   { background: linear-gradient(145deg, #4fc3f7, #0288d1); }
+    .ball.red    { background: linear-gradient(145deg, #ef5350, #c62828); }
+    .ball.gray   { background: linear-gradient(145deg, #90a4ae, #546e7a); }
+    .ball.green  { background: linear-gradient(145deg, #66bb6a, #2e7d32); }
+    .placeholder { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
+    .controls { display: flex; flex-direction: column; gap: 10px; }
+    .btn {
+      padding: 15px 20px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+      box-shadow: 0 6px 18px rgba(238, 90, 36, 0.4);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-report {
+      background: linear-gradient(135deg, #42a5f5, #1e88e5);
+      color: white;
+      box-shadow: 0 5px 15px rgba(30, 136, 229, 0.35);
+    }
+    .btn-report:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .history { margin-top: 22px; text-align: left; }
+    .history h3 {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .history-list {
+      max-height: 170px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-item {
+      background: rgba(255,255,255,0.06);
+      padding: 10px 12px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .history-numbers {
+      display: flex;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+    .mini-ball {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .mini-ball.yellow { background: #f9a825; color: #333; }
+    .mini-ball.blue   { background: #0288d1; }
+    .mini-ball.red    { background: #c62828; }
+    .mini-ball.gray   { background: #546e7a; }
+    .mini-ball.green  { background: #2e7d32; }
+    .history-meta {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+    .info-box {
+      margin-top: 18px;
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.28);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.55;
+      text-align: left;
+    }
+    .footer {
+      margin-top: 16px;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.5;
+    }
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-track { background: transparent; }
+    .history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+    @media (max-width: 360px) {
+      .ball { width: 42px; height: 42px; font-size: 1.05rem; }
+      .balls-row { gap: 6px; }
+      .mini-ball { width: 22px; height: 22px; font-size: 0.65rem; }
+    }
+
+    /* 보고서 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #1a1a2e;
+      border-radius: 20px;
+      max-width: 420px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      text-align: center;
+      color: #ffd700;
+    }
+    .report-content {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.88);
+      text-align: left;
+      white-space: pre-wrap;
+      font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .modal-btns .btn { flex: 1; min-width: 100px; padding: 12px; font-size: 0.92rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎱 한국 로또 6/45</h1>
+    <p class="subtitle">과거 출현 빈도 참고 생성기<br>실제 당첨 확률은 변하지 않습니다</p>
+
+    <div class="mode-box">
+      <label>
+        <input type="radio" name="mode" value="random" checked>
+        <span>완전 랜덤</span>
+      </label>
+      <div class="mode-desc">모든 번호 동일 확률</div>
+
+      <label>
+        <input type="radio" name="mode" value="hot">
+        <span>핫 번호 가중</span>
+      </label>
+      <div class="mode-desc">역대 많이 나온 번호 비중 ↑</div>
+
+      <label>
+        <input type="radio" name="mode" value="cold">
+        <span>콜드 번호 가중</span>
+      </label>
+      <div class="mode-desc">역대 적게 나온 번호 비중 ↑</div>
+
+      <label>
+        <input type="radio" name="mode" value="balanced">
+        <span>균형 혼합</span>
+      </label>
+      <div class="mode-desc">핫 + 콜드 번호 혼합</div>
+    </div>
+
+    <div class="count-row">
+      <label for="count">생성 개수</label>
+      <select id="count">
+        <option value="1" selected>1게임</option>
+        <option value="2">2게임</option>
+        <option value="3">3게임</option>
+        <option value="5">5게임</option>
+      </select>
+    </div>
+
+    <div class="balls-area" id="ballsArea">
+      <span class="placeholder">모드를 선택하고 버튼을 눌러주세요</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="generate()">🎲 번호 생성하기</button>
+      <button class="btn btn-report" id="reportBtn" onclick="showReport()" disabled>📄 생성기록 보고서</button>
+      <button class="btn btn-secondary" onclick="clearHistory()">기록 지우기</button>
+    </div>
+
+    <div class="history" id="historySection" style="display:none;">
+      <h3>생성 기록</h3>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+    <div class="info-box">
+      ⚠️ <strong>중요</strong><br>
+      로또는 매 회차 독립 추첨입니다. 과거 출현 빈도는 미래 당첨에 영향을 주지 않습니다.<br>
+      1등 확률은 항상 <strong>1 / 8,145,060</strong> 입니다.<br>
+      이 기능은 참고·재미용이며 당첨을 보장하지 않습니다.
+    </div>
+
+    <div class="footer">
+      완전 오프라인 · 로컬 생성<br>
+      데이터 기준: 1~1243회차 누적 출현 빈도
+    </div>
+  </div>
+
+  <!-- 보고서 모달 -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal">
+      <h2>📊 생성기록 보고서</h2>
+      <div class="report-content" id="reportText"></div>
+      <div class="modal-btns">
+        <button class="btn btn-report" onclick="downloadReport()">⬇️ TXT 다운로드</button>
+        <button class="btn btn-secondary" onclick="copyReport()">📋 복사</button>
+        <button class="btn btn-secondary" onclick="closeReport()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const frequency = {
+      1:170, 2:157, 3:172, 4:163, 5:153, 6:166, 7:171, 8:158, 9:137, 10:163,
+      11:168, 12:180, 13:183, 14:172, 15:170, 16:170, 17:171, 18:179, 19:171, 20:172,
+      21:167, 22:146, 23:149, 24:168, 25:153, 26:165, 27:181, 28:157, 29:156, 30:158,
+      31:171, 32:146, 33:175, 34:186, 35:163, 36:165, 37:174, 38:173, 39:168, 40:174,
+      41:151, 42:158, 43:167, 44:166, 45:175
+    };
+
+    let historyData = [];
+
+    function getWeight(num, mode) {
+      const f = frequency[num];
+      if (mode === 'hot') return Math.max(1, Math.round((f - 120) / 8));
+      if (mode === 'cold') return Math.max(1, Math.round((200 - f) / 8));
+      return 1;
+    }
+
+    function getBallClass(num) {
+      if (num <= 10) return 'yellow';
+      if (num <= 20) return 'blue';
+      if (num <= 30) return 'red';
+      if (num <= 40) return 'gray';
+      return 'green';
+    }
+
+    function weightedPick(available, mode) {
+      const weights = available.map(n => getWeight(n, mode));
+      const total = weights.reduce((a, b) => a + b, 0);
+      let r = Math.random() * total;
+      for (let i = 0; i < available.length; i++) {
+        r -= weights[i];
+        if (r <= 0) return available[i];
+      }
+      return available[available.length - 1];
+    }
+
+    function generateOneSet(mode) {
+      if (mode === 'balanced') {
+        const hotList = [34,13,27,12,18,33,45,37,40,38,3,14,20,7,31,19,17,1,15,16];
+        const coldList = [9,22,32,23,41,5,25,2,29,28,8,42,30,4,10,35,26,36,44,6];
+        const pool = [...new Set([...hotList.slice(0,12), ...coldList.slice(0,12)])];
+        const selected = new Set();
+        while (selected.size < 6) {
+          selected.add(pool[Math.floor(Math.random() * pool.length)]);
+        }
+        return Array.from(selected).sort((a,b) => a - b);
+      }
+
+      let available = Array.from({length: 45}, (_, i) => i + 1);
+      const selected = [];
+      while (selected.length < 6) {
+        const pick = mode === 'random'
+          ? available[Math.floor(Math.random() * available.length)]
+          : weightedPick(available, mode);
+        selected.push(pick);
+        available = available.filter(n => n !== pick);
+      }
+      return selected.sort((a,b) => a - b);
+    }
+
+    function generate() {
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const count = parseInt(document.getElementById('count').value, 10);
+      const area = document.getElementById('ballsArea');
+      area.innerHTML = '';
+
+      const sets = [];
+      for (let i = 0; i < count; i++) {
+        sets.push(generateOneSet(mode));
+      }
+
+      const row = document.createElement('div');
+      row.className = 'balls-row';
+      sets[0].forEach((num, idx) => {
+        const ball = document.createElement('div');
+        ball.className = `ball ${getBallClass(num)}`;
+        ball.textContent = num;
+        ball.style.animationDelay = `${idx * 0.06}s`;
+        row.appendChild(ball);
+      });
+      area.appendChild(row);
+
+      addToHistory(sets, mode);
+    }
+
+    function addToHistory(sets, mode) {
+      const section = document.getElementById('historySection');
+      const list = document.getElementById('historyList');
+      section.style.display = 'block';
+
+      const modeLabel = { random: '랜덤', hot: '핫', cold: '콜드', balanced: '균형' }[mode];
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = now.toLocaleDateString('ko-KR');
+
+      sets.forEach((nums, idx) => {
+        historyData.unshift({
+          numbers: nums,
+          mode: modeLabel,
+          time: timeStr,
+          date: dateStr,
+          fullTime: now.toLocaleString('ko-KR')
+        });
+
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        const numbersDiv = document.createElement('div');
+        numbersDiv.className = 'history-numbers';
+        nums.forEach(num => {
+          const mini = document.createElement('div');
+          mini.className = `mini-ball ${getBallClass(num)}`;
+          mini.textContent = num;
+          numbersDiv.appendChild(mini);
+        });
+
+        const meta = document.createElement('span');
+        meta.className = 'history-meta';
+        meta.textContent = sets.length > 1
+          ? `${modeLabel} ${timeStr} (${idx + 1})`
+          : `${modeLabel} ${timeStr}`;
+
+        item.appendChild(numbersDiv);
+        item.appendChild(meta);
+        list.insertBefore(item, list.firstChild);
+      });
+
+      document.getElementById('reportBtn').disabled = false;
+    }
+
+    function clearHistory() {
+      historyData = [];
+      document.getElementById('historyList').innerHTML = '';
+      document.getElementById('historySection').style.display = 'none';
+      document.getElementById('ballsArea').innerHTML = '<span class="placeholder">모드를 선택하고 버튼을 눌러주세요</span>';
+      document.getElementById('reportBtn').disabled = true;
+    }
+
+    // ===== 보고서 =====
+    function buildReportText() {
+      const now = new Date();
+      let text = '';
+      text += '================================\n';
+      text += '  한국 로또 6/45 생성기록 보고서\n';
+      text += '================================\n\n';
+      text += '작성일시 : ' + now.toLocaleString('ko-KR') + '\n';
+      text += '총 생성수 : ' + historyData.length + '게임\n\n';
+      text += '--------------------------------\n';
+      text += '번호 목록 (최신순)\n';
+      text += '--------------------------------\n\n';
+
+      historyData.forEach((item, i) => {
+        const nums = item.numbers.map(n => String(n).padStart(2, '0')).join('  ');
+        text += String(i + 1).padStart(2, '0') + '. [' + nums + ']  ' + item.mode + '  ' + item.date + ' ' + item.time + '\n';
+      });
+
+      // 번호 출현 통계
+      const countMap = {};
+      historyData.forEach(item => {
+        item.numbers.forEach(n => {
+          countMap[n] = (countMap[n] || 0) + 1;
+        });
+      });
+      const sorted = Object.entries(countMap).sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+
+      text += '\n--------------------------------\n';
+      text += '이번 세션 번호 출현 통계\n';
+      text += '--------------------------------\n\n';
+      text += '자주 나온 번호 TOP 10\n';
+      sorted.slice(0, 10).forEach(([num, cnt], i) => {
+        text += '  ' + (i + 1) + '. ' + String(num).padStart(2, '0') + '번  →  ' + cnt + '회\n';
+      });
+
+      text += '\n--------------------------------\n';
+      text += '※ 참고사항\n';
+      text += '로또는 매 회차 독립 추첨입니다.\n';
+      text += '과거 출현 빈도는 미래 당첨에\n';
+      text += '영향을 주지 않습니다.\n';
+      text += '1등 확률: 1 / 8,145,060\n';
+      text += '================================\n';
+
+      return text;
+    }
+
+    function showReport() {
+      if (historyData.length === 0) {
+        alert('생성 기록이 없습니다.');
+        return;
+      }
+      document.getElementById('reportText').textContent = buildReportText();
+      document.getElementById('reportModal').classList.add('show');
+    }
+
+    function closeReport() {
+      document.getElementById('reportModal').classList.remove('show');
+    }
+
+    // UTF-8 BOM을 추가해서 안드로이드에서도 한글이 깨지지 않도록 처리
+    function downloadReport() {
+      const text = buildReportText();
+      // BOM (Byte Order Mark) 추가 → 대부분의 모바일 뷰어가 UTF-8로 인식
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const now = new Date();
+      const fileName = '로또생성기록_' +
+        now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + '_' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') + '.txt';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 클립보드 복사 (다운로드가 깨질 경우 대안)
+    function copyReport() {
+      const text = buildReportText();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('보고서가 클립보드에 복사되었습니다.\n메모장 등에 붙여넣기 하세요.');
+        }).catch(() => {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        alert('보고서가 클립보드에 복사되었습니다.\n메모장 등에 붙여넣기 하세요.');
+      } catch (e) {
+        alert('복사에 실패했습니다. 텍스트를 직접 선택해서 복사해주세요.');
+      }
+      document.body.removeChild(ta);
+    }
+
+    document.getElementById('reportModal').addEventListener('click', function(e) {
+      if (e.target === this) closeReport();
+    });
+  </script>
+</body>
+</html>

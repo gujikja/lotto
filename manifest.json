@@ -1,0 +1,12 @@
+{
+  "name": "한국 로또 6/45 번호 발생기",
+  "short_name": "로또번호",
+  "description": "완전 오프라인 한국 로또 6/45 번호 자동 생성기",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f0c29",
+  "theme_color": "#302b63",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": []
+}
